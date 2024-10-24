@@ -5,8 +5,6 @@ services:
     container_name: aniart
     volumes:
       - aniartdb:/app/base
-    ports:
-      - "80:80"
     environment:
       - DATABASE_URL=sqlite:///app/db.db
 
