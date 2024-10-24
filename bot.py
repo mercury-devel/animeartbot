@@ -39,7 +39,6 @@ start_msg = '''
 🔎/tag - настройка тегов
 👁/seetag - посмотреть свой тег
 '''
-channel = -1002027403620
 sql_rq = Sqlite()
 stickers = [sticker[0] for sticker in sql_rq.select("select sticker from stickers")]
 
@@ -49,7 +48,7 @@ async def echo(message: types.Message):
     sticker = random.choice(stickers)
     user_id = message.from_user.id
     chat_id = message.chat.id
-    user_status = await bot.get_chat_member(chat_id=channel, user_id=user_id)
+    user_status = await bot.get_chat_member(chat_id=channel_id, user_id=user_id)
     user_status = user_status.status
     '''
     if message.sticker:
@@ -133,7 +132,7 @@ async def echo(message: types.Message):
         else:
             if chat_id > 0:
                 keyboard = InlineKeyboardMarkup()
-                keyboard.add(InlineKeyboardButton("🔗Ссылка на канал", url="https://t.me/+Rkykh4pkx2Y0YjFk"))
+                keyboard.add(InlineKeyboardButton("🔗Ссылка на канал", url=channel_link))
                 await bot.send_message(
                     chat_id=chat_id,
                     text="Чтоб пользоваться ботом подпишись на канал\nПосле подписки бот заработает",
