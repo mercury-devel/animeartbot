@@ -3,10 +3,9 @@ from threading import Thread
 import requests
 import asyncio
 import random
-import json
-import os
 from config import *
-
+from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+import time
 
 class RandomArt(Thread):
     def __init__(self, tag, chat_id, bot):
@@ -33,50 +32,42 @@ class RandomArt(Thread):
             "tags": self.tag
         }
         art_url = None
-        try:
-            for _ in range(10):
-                try:
-                    art_data = requests.get(
-                        url="https://danbooru.donmai.us/posts/random.json",
-                        params=params,
-                        proxies=proxies
-                    )
-                    art = art_data.json()
-                    #print(json.dumps(art, indent=4))
-                    tags = art["tag_string"].split(" ")
-                    art_url = art["large_file_url"]
+        for _ in range(10):
+            try:
+                art_data = requests.get(
+                    url="https://danbooru.donmai.us/posts/random.json",
+                    params=params,
+                    proxies=proxies
+                )
+                art = art_data.json()
+                tags = art["tag_string"].split(" ")
+                art_url = art["large_file_url"]
+                file_ext = art["file_ext"]
+                if file_ext in ["jpg", "png", "webp"]:
                     break
-                except:
-                    pass
-            if not art_url:
-                return
-            file_ext = art["file_ext"]
-            post_link = f"\n{self.random_emoji()}<b><u>Ссылка на пост:</u></b> <a href='https://danbooru.donmai.us/posts/{art['id']}'>открыть</a>"
-            tag_string = f"{self.random_emoji()}<b><u>Теги:</u></b>\n"
-            for tag in tags:
-                tag_string += f"<code>{tag}</code> "
-            tag_string += "\n"
-            #art_name = art_url.split("/")[-1]
-            #source = requests.get(url=art_url, proxies=proxies).content
-            #art_path = "arts/"+art_name
-            #f = open(art_path, "wb")
-            #f.write(source)
-            #f.close()
-            
-            caption = tag_string[:974] + "\n" + post_link
-            if file_ext in ["jpg", "png", "webp"]:
-                self.bot.send_photo(
-                    chat_id=self.chat_id,
-                    photo=art_url,
-                    caption=caption,
-                    parse_mode=ParseMode.HTML
-                )
-            elif file_ext in ["mp4", "webm"]:
-                self.bot.send_video(
-                    chat_id=self.chat_id,
-                    video=art_url,
-                    caption=caption,
-                    parse_mode=ParseMode.HTML
-                )
-        except:
-            pass
+            except:
+                pass
+            time.sleep(1)
+        if not art_url:
+            return
+        tag_string = f"{self.random_emoji()}<b><u>Теги:</u></b>\n"
+        for tag in tags:
+            tag_string += f"{tag} "
+        tag_string += "\n"
+        
+        button = InlineKeyboardButton(f"{self.random_emoji()} Ссылка на пост:", url=f"https://danbooru.donmai.us/posts/{art['id']}")
+        keyboard = InlineKeyboardMarkup([[button]])
+        
+        msg = self.bot.send_message(
+            chat_id=self.chat_id,
+            text=tag_string[:4000],
+            parse_mode=ParseMode.HTML,
+            reply_markup=keyboard
+        )
+        msg_id = msg.id
+        self.bot.send_photo(
+            chat_id=self.chat_id,
+            photo=art_url,
+            reply_to_message_id=msg_id
+        )
+
