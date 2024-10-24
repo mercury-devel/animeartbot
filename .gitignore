@@ -163,3 +163,4 @@ cython_debug/
 
 *.session*
 .vscode
+*.db
