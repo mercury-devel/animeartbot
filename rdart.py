@@ -4,7 +4,7 @@ import requests
 import asyncio
 import random
 from config import *
-from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, InputMediaPhoto
 import time
 
 class RandomArt(Thread):
@@ -31,8 +31,12 @@ class RandomArt(Thread):
         params = {
             "tags": self.tag
         }
-        art_url = None
-        for _ in range(10):
+        
+        # Список для хранения URL изображений и ID постов
+        images = []
+        
+        # Собираем до 10 уникальных изображений
+        while len(images) < 10:
             try:
                 art_data = requests.get(
                     url="https://danbooru.donmai.us/posts/random.json",
@@ -40,34 +44,33 @@ class RandomArt(Thread):
                     proxies=proxies
                 )
                 art = art_data.json()
-                tags = art["tag_string"].split(" ")
-                art_url = art["large_file_url"]
-                file_ext = art["file_ext"]
-                if file_ext in ["jpg", "png", "webp"]:
-                    break
+                art_url = art.get("large_file_url")
+                file_ext = art.get("file_ext")
+                
+                if art_url and file_ext in ["jpg", "png"]:
+                    images.append(art_url)
+                
             except:
                 pass
+            
             time.sleep(1)
-        if not art_url:
+
+        # Если не нашли подходящих изображений
+        if not images:
             return
-        tag_string = f"{self.random_emoji()}<b><u>Теги:</u></b>\n"
-        for tag in tags:
-            tag_string += f"{tag} "
-        tag_string += "\n"
-        
-        button = InlineKeyboardButton(f"{self.random_emoji()} Ссылка на пост:", url=f"https://danbooru.donmai.us/posts/{art['id']}")
-        keyboard = InlineKeyboardMarkup([[button]])
-        
+
+        # Создаём медиагруппу из собранных изображений
         msg = self.bot.send_message(
             chat_id=self.chat_id,
-            text=tag_string[:4000],
-            parse_mode=ParseMode.HTML,
-            reply_markup=keyboard
+            text=f"{self.random_emoji()} Результаты по тегу <code>{self.tag}</code>"
         )
-        msg_id = msg.id
-        self.bot.send_photo(
+        media_group = []
+        for art_url in images:
+            media_group.append(InputMediaPhoto(media=art_url, parse_mode=ParseMode.HTML))
+        
+        # Отправляем медиагруппу в чат
+        self.bot.send_media_group(
             chat_id=self.chat_id,
-            photo=art_url,
-            reply_to_message_id=msg_id
+            media=media_group,
+            reply_to_message_id=msg.id
         )
-
