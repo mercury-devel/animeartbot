@@ -41,8 +41,8 @@ class RandomArt(Thread):
                 art_data = requests.get(
                     url="https://danbooru.donmai.us/posts/random.json",
                     params=params,
-                    proxies=proxies
                 )
+                #proxies=proxies
                 art = art_data.json()
                 art_url = art.get("large_file_url")
                 file_ext = art.get("file_ext")
