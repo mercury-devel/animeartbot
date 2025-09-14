@@ -1,6 +1,6 @@
 # AnimeArt Telegram Bot
 
-![Banner](https://i.imgur.com/LKVVDhb.jpeg)
+![Banner](https://i.imgur.com/QtTJdhn.jpeg)
 
 # 📖 Description
 - Sends anime art from danbooru.donmai.us as random posts.
